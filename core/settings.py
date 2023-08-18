@@ -90,7 +90,7 @@ DATABASES = {
         'USER': 'postgres',
         'PASSWORD': 'telecel0523',
         # 'HOST': '127.0.0.1', 
-        'HOST': 'private_ip_of_your_ec2_instance',
+        'HOST': '172.31.34.151',
         
         'PORT': '5432',
     }
