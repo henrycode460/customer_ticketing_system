@@ -34,7 +34,7 @@ from django.conf import settings
 # from django.contrib.sites.shortcuts import get_current_site
 # from twilio.rest import Client
 from django.urls import reverse
-from .filters import TicketFilter, TicketFilterCustomer, TicketFilterAdmin
+# from .filters import TicketFilter, TicketFilterCustomer, TicketFilterAdmin
 from io import BytesIO
 from django.http import HttpResponse
 from reportlab.lib import pagesizes
@@ -190,35 +190,35 @@ def all_ticket_created(request):
 
     ticket = Ticket.objects.filter(created_by=user).order_by("-date_created")
     
-    myfilter = TicketFilterCustomer(request.GET, queryset=ticket, request=request)
+    # myfilter = TicketFilterCustomer(request.GET, queryset=ticket, request=request)
 
-    # Pagination
-    p = Paginator(myfilter.qs, 8) 
-    page = request.GET.get('page')
-    tickets_parginating = p.get_page(page)
-    nums = 'a' * tickets_parginating.paginator.num_pages
+    # # Pagination
+    # p = Paginator(myfilter.qs, 8) 
+    # page = request.GET.get('page')
+    # tickets_parginating = p.get_page(page)
+    # nums = 'a' * tickets_parginating.paginator.num_pages
 
     # Update Ticket Form
     update_form = UpdateTicketForm()
 
-    if request.method == 'POST':
-        if 'filterForm' in request.POST:
-            # Handle filter form submission
-            myfilter = TicketFilterCustomer(request.GET, queryset=ticket, request=request)
-        elif 'updateForm' in request.POST:
-            # Handle update form submission
-            pk = request.POST.get('ticket_id')
-            ticket_instance = get_object_or_404(Ticket, pk=pk)
-            update_form = UpdateTicketForm(request.POST, instance=ticket_instance)
-            if update_form.is_valid():
-                update_form.save()
-            return redirect('all_ticket_created')
+    # if request.method == 'POST':
+    #     if 'filterForm' in request.POST:
+    #         # Handle filter form submission
+    #         myfilter = TicketFilterCustomer(request.GET, queryset=ticket, request=request)
+    #     elif 'updateForm' in request.POST:
+    #         # Handle update form submission
+    #         pk = request.POST.get('ticket_id')
+    #         ticket_instance = get_object_or_404(Ticket, pk=pk)
+    #         update_form = UpdateTicketForm(request.POST, instance=ticket_instance)
+    #         if update_form.is_valid():
+    #             update_form.save()
+    #         return redirect('all_ticket_created')
 
     context = {
         'ticket': ticket,
-        'myfilter': myfilter,
-        'tickets_parginating': tickets_parginating,
-        'nums': nums,
+        # 'myfilter': myfilter,
+        # 'tickets_parginating': tickets_parginating,
+        # 'nums': nums,
         'update_form': update_form,
     }
 
@@ -489,57 +489,57 @@ def complete_ticket_customer(request, pk):
     return redirect('technician_complete_ticket')
  
  
-def export_csv_filter(request):
-    ticket = Ticket.objects.all()
-    myfilter = TicketFilter(request.GET, queryset=ticket).qs
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename= tickets.csv'
-    tickets = Ticket.objects.all()
-    writer = csv.writer(response)
-    writer.writerow(['Ticket Number', 'Customer Name', 'Ticket Title', 'Ticket Description', 'Assigned To', 'Created By', 'Ticket Status', 'Date Created'])
+# def export_csv_filter(request):
+#     ticket = Ticket.objects.all()
+#     myfilter = TicketFilter(request.GET, queryset=ticket).qs
+#     response = HttpResponse(content_type='text/csv')
+#     response['Content-Disposition'] = 'attachment; filename= tickets.csv'
+#     tickets = Ticket.objects.all()
+#     writer = csv.writer(response)
+#     writer.writerow(['Ticket Number', 'Customer Name', 'Ticket Title', 'Ticket Description', 'Assigned To', 'Created By', 'Ticket Status', 'Date Created'])
     
-    for ticket in myfilter:
-        writer.writerow([ticket.ticket_number, ticket.customer, ticket.title, ticket.description, ticket.assignee, ticket.created_by, ticket.status, ticket.date_created])
+#     for ticket in myfilter:
+#         writer.writerow([ticket.ticket_number, ticket.customer, ticket.title, ticket.description, ticket.assignee, ticket.created_by, ticket.status, ticket.date_created])
         
-    return response
+#     return response
 
 
-def export_pdf_filter(request):
-    ticket = Ticket.objects.all()
-    myfilter = TicketFilter(request.GET, queryset=ticket).qs
+# def export_pdf_filter(request):
+#     ticket = Ticket.objects.all()
+#     myfilter = TicketFilter(request.GET, queryset=ticket).qs
 
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename=tickets.pdf'
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = 'attachment; filename=tickets.pdf'
 
-    doc = SimpleDocTemplate(response, pagesize=landscape(letter))
-    elements = []
+#     doc = SimpleDocTemplate(response, pagesize=landscape(letter))
+#     elements = []
 
-    data = [['Ticket Number', 'Customer Name', 'Ticket Title', 'Ticket Description', 'Assigned To', 'Created By', 'Ticket Status']]
+#     data = [['Ticket Number', 'Customer Name', 'Ticket Title', 'Ticket Description', 'Assigned To', 'Created By', 'Ticket Status']]
 
-    for ticket in myfilter:
-        row = [ticket.ticket_number, ticket.customer, ticket.title, ticket.description, ticket.assignee, ticket.created_by, ticket.status]
-        data.append(row)
+#     for ticket in myfilter:
+#         row = [ticket.ticket_number, ticket.customer, ticket.title, ticket.description, ticket.assignee, ticket.created_by, ticket.status]
+#         data.append(row)
 
-    table = Table(data, repeatRows=1)
+#     table = Table(data, repeatRows=1)
 
-    # Adjust column widths to fit the content
-    col_widths = [doc.width / len(data[0]) for _ in data[0]]
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), '#CCCCCC'),
-        ('TEXTCOLOR', (0, 0), (-1, 0), '#000000'),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), '#ffffff'),
-        ('GRID', (0, 0), (-1, -1), 1, '#000000'),
-        ('COLWIDTH', (0, 0), (-1, -1), col_widths),
-    ]))
+#     # Adjust column widths to fit the content
+#     col_widths = [doc.width / len(data[0]) for _ in data[0]]
+#     table.setStyle(TableStyle([
+#         ('BACKGROUND', (0, 0), (-1, 0), '#CCCCCC'),
+#         ('TEXTCOLOR', (0, 0), (-1, 0), '#000000'),
+#         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+#         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+#         ('FONTSIZE', (0, 0), (-1, 0), 12),
+#         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+#         ('BACKGROUND', (0, 1), (-1, -1), '#ffffff'),
+#         ('GRID', (0, 0), (-1, -1), 1, '#000000'),
+#         ('COLWIDTH', (0, 0), (-1, -1), col_widths),
+#     ]))
 
-    elements.append(table)
+#     elements.append(table)
 
-    doc.build(elements)
-    return response
+#     doc.build(elements)
+#     return response
 
 
 
