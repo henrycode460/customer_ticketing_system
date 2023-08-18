@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect
 from apps.authentication.models import User
 from django.contrib.auth import authenticate, login, logout
 from ticketing.models import UserActivity 
-from user_agents import parse
+# from user_agents import parse
 from django.utils import timezone
 from django.urls import reverse
 from django.shortcuts import render, get_object_or_404, redirect
