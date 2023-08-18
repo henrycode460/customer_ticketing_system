@@ -16,7 +16,7 @@ import uuid
 import re
 
 from django.conf import settings
-from django_user_agents.utils import get_user_agent
+# from django_user_agents.utils import get_user_agent
 
 import requests
 
