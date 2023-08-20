@@ -86,11 +86,11 @@ DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.postgresql',
          'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'customerticketingapp', 
+        'NAME': 'my_database_instance', 
         'USER': 'postgres',
         'PASSWORD': 'telecel0523',
         # 'HOST': '127.0.0.1', 
-        'HOST': '172.31.34.151',
+        'HOST': 'mybdsetup.c0i13qcnfvzy.us-east-1.rds.amazonaws.com',
         
         'PORT': '5432',
     }
