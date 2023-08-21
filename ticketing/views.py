@@ -792,12 +792,12 @@ def ticket_to_claim_tech(request):
 
 
 
-def user_activities_view(request):
-    user_activities = UserActivity.objects.filter(user=request.user).order_by('-timestamp')
-    return render(request, 'user_activities.html', {'user_activities': user_activities})
-
-
 def user_activity_log(request):
+    user_activities = UserActivity.objects.filter(user=request.user).order_by('-timestamp')
+    return render(request, 'user_activity_log.html', {'user_activities': user_activities})
+
+
+def user_activities_view(request):
     # Get all users
     users = User.objects.all()
 
@@ -817,8 +817,7 @@ def user_activity_log(request):
         'activities': activities,
     }
 
-    return render(request, 'user_activity_log.html', context)
- 
+    return render(request, 'user_activities.html', context)
 
 
 
