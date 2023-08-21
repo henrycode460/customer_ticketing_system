@@ -92,6 +92,11 @@
             <th scope="col" class="sort" data-sort="name">Timestamp</th>
             <th scope="col" class="sort" data-sort="budget">Activities</th>
             <th scope="col" class="sort" data-sort="status">Details</th>
+            <th scope="col" class="sort" data-sort="status">User Agent</th>
+            <th scope="col" class="sort" data-sort="status">Device Info</th>
+            <th scope="col" class="sort" data-sort="status">IP Address </th>
+            <th scope="col" class="sort" data-sort="status">city</th>
+            <th scope="col" class="sort" data-sort="status">country</th>
           </tr>
         </thead>
         <tbody class="list">
@@ -109,6 +114,21 @@
               </td>
               <td>
                 {{ activity.details }}
+              </td>
+              <td>
+                {{ activity.user_agent_string }}
+              </td>
+              <td>
+                {{ activity.user_agent }}
+              </td>
+              <td>
+                {{ activity.ip_address }}
+              </td>
+              <td>
+                {{ activity.city }}
+              </td>
+              <td>
+                {{ activity.country }}
               </td>
             </tr>
           {% endfor %}
