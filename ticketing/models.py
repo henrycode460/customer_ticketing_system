@@ -156,6 +156,13 @@ class UserActivity(models.Model):
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     country = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
+    
+    region = models.CharField(max_length=255, blank=True, null=True)
+    
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+
+  
 
   
     

@@ -856,6 +856,10 @@ def customer_queue(request):
     # Extract country and city information
     country = data.get('country')
     city = data.get('city')
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+    region = data.get('region')
+    
     
     device_name = user_agent_string
     # Create UserActivity instance with user agent, location, and other details
@@ -873,6 +877,10 @@ def customer_queue(request):
         ip_address=ip_address,
         country=country,
         city=city,
+        latitude=latitude,
+        longitude=longitude,
+        region=region,
+        
         timestamp=timezone.now()
     )
     
@@ -880,6 +888,8 @@ def customer_queue(request):
     
     context = {'customers': customers}
     return render(request, 'customer_queue.html', context)
+
+
 
 
 

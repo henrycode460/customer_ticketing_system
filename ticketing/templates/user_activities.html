@@ -97,6 +97,9 @@
             <th scope="col" class="sort" data-sort="status">IP Address </th>
             <th scope="col" class="sort" data-sort="status">city</th>
             <th scope="col" class="sort" data-sort="status">country</th>
+            <th scope="col" class="sort" data-sort="status">Latitude</th>
+            <th scope="col" class="sort" data-sort="status">Longtitude</th>
+            <th scope="col" class="sort" data-sort="status">Region</th>
           </tr>
         </thead>
         <tbody class="list">
@@ -130,6 +133,16 @@
               <td>
                 {{ activity.country }}
               </td>
+              <td>
+                {{ activity.latitude }}
+              </td>
+              <td>
+                {{ activity.longitude }}
+              </td>
+              <td>
+                {{ activity.region }}
+              </td>
+              
             </tr>
           {% endfor %}
         </tbody>
