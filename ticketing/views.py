@@ -854,12 +854,18 @@ def customer_queue(request):
     print("Data:", data)  # Print the parsed JSON data
     
     # Extract country and city information
+    # Extract country and city information
     country = data.get('country')
     city = data.get('city')
-    latitude = data.get('latitude')
-    longitude = data.get('longitude')
     region = data.get('region')
     
+    # Extract latitude and longitude from the 'loc' field
+    loc = data.get('loc')
+    if loc:
+        latitude, longitude = loc.split(',')
+    else:
+        latitude = None
+        longitude = None
     
     device_name = user_agent_string
     # Create UserActivity instance with user agent, location, and other details
