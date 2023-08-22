@@ -96,7 +96,8 @@ def add_ticket(request):
             ip_address = get_client_ip(request)
             
             # Make a request to the IPInfo API
-            api_url = f"https://ipinfo.io/{ip_address}?token=YOUR_IPINFO_API_KEY"  # Replace with your actual API key
+            api_url = f"https://ipinfo.io/{ip_address}?token=0c00f775b92a27"
+
             response = requests.get(api_url)
             data = response.json()
             
@@ -187,7 +188,8 @@ def accept_ticket(request, pk):
         ip_address = get_client_ip(request)
         
         # Make a request to the IPInfo API
-        api_url = f"https://ipinfo.io/{ip_address}?token=YOUR_IPINFO_API_KEY"  # Replace with your actual API key
+        api_url = f"https://ipinfo.io/{ip_address}?token=0c00f775b92a27"
+
         response = requests.get(api_url)
         data = response.json()
         
