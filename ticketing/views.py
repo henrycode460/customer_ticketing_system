@@ -55,6 +55,16 @@ from django.http import HttpResponseNotFound, HttpResponse
 import mimetypes
 from user_agents import parse
 
+
+def get_client_ip(request):
+    
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
 def get_ticket_url(request, ticket):
     domain = request.get_host()
     accept_url = reverse('accept_ticket', args=[ticket.pk])  
@@ -79,13 +89,52 @@ def add_ticket(request):
             activity_details = f"Ticket ID: {ticket.ticket_number}, Customer: {ticket.customer}, Title: {ticket.title}"
             
             # Get the user agent from the request
-            user_agent = request.META.get('HTTP_USER_AGENT', '')
-
+            user_agent_string = request.META.get('HTTP_USER_AGENT', '')
+            user_agent = parse(user_agent_string)
+            
+            # Get the user's IP address from the request
+            ip_address = get_client_ip(request)
+            
+            # Make a request to the IPInfo API
+            api_url = f"https://ipinfo.io/{ip_address}?token=YOUR_IPINFO_API_KEY"  # Replace with your actual API key
+            response = requests.get(api_url)
+            data = response.json()
+            
+            # Extract country and city information
+            country = data.get('country')
+            city = data.get('city')
+            region = data.get('region')
+    
+    # Extract latitude and longitude from the 'loc' field
+            loc = data.get('loc')
+            if loc:
+             latitude, longitude = loc.split(',')
+            else:
+             latitude = None
+             longitude = None
+    
+        
+            
+            device_name = user_agent_string
+            # Create UserActivity instance with user agent, location, and other details
             UserActivity.objects.create(
                 user=request.user,
                 activity="Created A Ticket",
                 details=activity_details,
-                user_agent=user_agent,  # Capture the user agent
+                user_agent={
+                    'is_mobile': user_agent.is_mobile,
+                    'is_tablet': user_agent.is_tablet,
+                    'browser_family': user_agent.browser.family,
+                    'Device': device_name,
+                    # ... other user agent attributes ...
+                },
+                ip_address=ip_address,
+                country=country,
+                city=city,
+                latitude=latitude,
+                longitude=longitude,
+                region=region,
+                timestamp=timezone.now()
             )
             
             # Send email to technician
@@ -116,7 +165,6 @@ def add_ticket(request):
 
     context = {'form': form}
     return render(request, 'add_ticket.html', context)
-
 # =================================================== ACCEPT TICKET ===============================================================
 
 
@@ -128,17 +176,55 @@ def accept_ticket(request, pk):
         ticket.accepted_date = datetime.now()
         ticket.save()
 
-        # Log the ticket creation activity
-        activity_details = f"Ticket ID: {ticket.ticket_number}, Customer: {ticket.customer}, Title: {ticket.title}"
+        # Log the ticket acceptance activity
+        activity_details = f"Accepted Ticket: ID {ticket.ticket_number}, Customer: {ticket.customer}, Title: {ticket.title}"
         
         # Get the user agent from the request
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
-
+        user_agent_string = request.META.get('HTTP_USER_AGENT', '')
+        user_agent = parse(user_agent_string)
+        
+        # Get the user's IP address from the request
+        ip_address = get_client_ip(request)
+        
+        # Make a request to the IPInfo API
+        api_url = f"https://ipinfo.io/{ip_address}?token=YOUR_IPINFO_API_KEY"  # Replace with your actual API key
+        response = requests.get(api_url)
+        data = response.json()
+        
+        # Extract country and city information
+        country = data.get('country')
+        city = data.get('city')
+        
+        region = data.get('region')
+    
+    # Extract latitude and longitude from the 'loc' field
+        loc = data.get('loc')
+        if loc:
+         latitude, longitude = loc.split(',')
+        else:
+         latitude = None
+         longitude = None
+        
+        device_name = user_agent_string
+        # Create UserActivity instance with user agent, location, and other details
         UserActivity.objects.create(
             user=request.user,
             activity="Accepted Ticket",
             details=activity_details,
-            user_agent=user_agent,  # Capture the user agent
+            user_agent={
+                'is_mobile': user_agent.is_mobile,
+                'is_tablet': user_agent.is_tablet,
+                'browser_family': user_agent.browser.family,
+                'Device': device_name,
+                # ... other user agent attributes ...
+            },
+            ip_address=ip_address,
+            country=country,
+            city=city,
+            latitude=latitude,
+            longitude=longitude,
+            region=region,
+            timestamp=timezone.now()
         )
 
         # Send email to customer care
@@ -389,41 +475,61 @@ def close_ticket(request, pk):
 
     # Capture user activity
     activity_details = f"Ticket ID: {ticket.ticket_number}, Customer: {ticket.customer}, Title: {ticket.title}"
-    
-    # Get the user agent from the request
-    user_agent = request.META.get('HTTP_USER_AGENT', '')
 
+    user_agent_string = request.META.get('HTTP_USER_AGENT', '')
+    user_agent = parse(user_agent_string)
+    ip_address = get_client_ip(request)
+    
+    api_url = f"https://ipinfo.io/{ip_address}?token=0c00f775b92a27"
+    response = requests.get(api_url)
+    data = response.json()
+    
+    country = data.get('country')
+    city = data.get('city')
+    region = data.get('region')
+    
+    loc = data.get('loc')
+    if loc:
+        latitude, longitude = loc.split(',')
+    else:
+        latitude = None
+        longitude = None
+    
     UserActivity.objects.create(
         user=request.user,
         activity="Close A Ticket",
         details=activity_details,
-        user_agent=user_agent  # Capture the user agent
+        user_agent={
+            'is_mobile': user_agent.is_mobile,
+            'is_tablet': user_agent.is_tablet,
+            'browser_family': user_agent.browser.family,
+            'Device': user_agent_string,
+            # ... other user agent attributes ...
+        },
+        ip_address=ip_address,
+        country=country,
+        city=city,
+        region=region,
+        latitude=latitude,
+        longitude=longitude,
+        timestamp=timezone.now()
     )
 
-    # Get the technician who closed the ticket
     technician = request.user
-
-    # Check if the technician is already working on any pending or in-progress ticket
     technician_assigned_tickets = Ticket.objects.filter(assignee=technician, status__in=["Pending", "In_Progress"])
     if not technician_assigned_tickets.exists():
-        # Get the first unassigned ticket
         unassigned_ticket = Ticket.objects.filter(assignee__isnull=True).first()
         if unassigned_ticket:
-            # Assign the unassigned ticket to the technician who closed the ticket
             unassigned_ticket.assignee = technician
             unassigned_ticket.save()
-
-            # Send email notification to the technician
             subject = 'Ticket Assigned to You'
             email_context = {
                 'ticket': unassigned_ticket,
             }
             email_html_message = render_to_string('email_templates/ticket_assigned.html', email_context)
             email_plain_message = strip_tags(email_html_message)
-
             send_mail(subject, email_plain_message, settings.DEFAULT_FROM_EMAIL, [technician.email], html_message=email_html_message)
 
-    # Send email notification to the ticket creator (customer care)
     subject = 'Ticket Completed'
     email_context = {
         'created_by_user': ticket.created_by,
@@ -431,7 +537,6 @@ def close_ticket(request, pk):
     }
     email_html_message = render_to_string('email_templates/ticket_closed.html', email_context)
     email_plain_message = strip_tags(email_html_message)
-
     send_mail(subject, email_plain_message, settings.DEFAULT_FROM_EMAIL, [ticket.created_by.email], html_message=email_html_message)
 
     messages.success(request, "Ticket has been resolved. An email notification has been sent to the ticket creator.")
@@ -826,14 +931,7 @@ def user_activities_view(request):
 import ipinfo
 from ipinfo import getHandler
 
-def get_client_ip(request):
-    
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+
 
 def customer_queue(request):
     activity_details = "Visited customer queue page"

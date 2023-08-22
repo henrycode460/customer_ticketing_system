@@ -17,6 +17,18 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
+from user_agents import parse
+import requests
+
+
+def get_client_ip(request):
+    
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 
 def login_view(request):
@@ -35,13 +47,51 @@ def login_view(request):
                 activity_details = f"User: {user.username} logged in"
                 
                 # Get the user agent from the request
-                user_agent = request.META.get('HTTP_USER_AGENT', '')
+                user_agent_string = request.META.get('HTTP_USER_AGENT', '')
+                user_agent = parse(user_agent_string)
 
+                # Get the user's IP address from the request
+                ip_address = get_client_ip(request)
+                
+                # Make a request to the IPInfo API
+                api_url = f"https://ipinfo.io/{ip_address}?token=YOUR_IPINFO_API_KEY"  # Replace with your actual API key
+                response = requests.get(api_url)
+                data = response.json()
+                
+                # Extract country and city information
+                country = data.get('country')
+                city = data.get('city')
+                region = data.get('region')
+    
+    # Extract latitude and longitude from the 'loc' field
+                loc = data.get('loc')
+                if loc:
+                  latitude, longitude = loc.split(',')
+                else:
+                 latitude = None
+                 longitude = None
+    
+                device_name = user_agent_string
+                
+                # Create UserActivity instance with user agent, location, and other details
                 UserActivity.objects.create(
                     user=user,
                     activity="User Login",
                     details=activity_details,
-                    user_agent=user_agent  # Capture the user agent
+                    user_agent={
+                        'is_mobile': user_agent.is_mobile,
+                        'is_tablet': user_agent.is_tablet,
+                        'browser_family': user_agent.browser.family,
+                        'Device': device_name,
+                        # ... other user agent attributes ...
+                    },
+                    ip_address=ip_address,
+                    country=country,
+                    city=city,
+                    latitude=latitude,
+                    longitude=longitude,
+                    region=region,
+                    timestamp=timezone.now()
                 )
 
                 return redirect("index")
@@ -51,6 +101,11 @@ def login_view(request):
             msg = 'Error validating the form'
 
     return render(request, "accounts/login.html", {"form": form, "msg": msg})
+
+
+
+
+
 
 # @login_required
 def register_user(request):
@@ -97,22 +152,66 @@ def logout_view(request):
     # Log user logout activity with the correct user information
     if user.is_authenticated:
         activity_details = f"User: {user.username} logged out"
-
+        
         # Get the user agent from the request
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        user_agent_string = request.META.get('HTTP_USER_AGENT', '')
+        user_agent = parse(user_agent_string)
 
+        # Get the user's IP address from the request
+        ip_address = get_client_ip(request)
+        
+        # Make a request to the IPInfo API
+        api_url = f"https://ipinfo.io/{ip_address}?token=YOUR_IPINFO_API_KEY"  # Replace with your actual API key
+        response = requests.get(api_url)
+        data = response.json()
+        data = response.json()
+                
+                # Extract country and city information
+        country = data.get('country')
+        city = data.get('city')
+        region = data.get('region')
+    
+    # Extract latitude and longitude from the 'loc' field
+        loc = data.get('loc')
+        if loc:
+         latitude, longitude = loc.split(',')
+        else:
+         latitude = None
+         longitude = None
+    
+        device_name = user_agent_string
+        
+        # Extract country and city information
+        country = data.get('country')
+        city = data.get('city')
+        
+        # Create UserActivity instance with user agent, location, and other details
         UserActivity.objects.create(
             user=user,
             activity="User Logout",
             details=activity_details,
-            user_agent=user_agent  # Capture the user agent
+            user_agent={
+                'is_mobile': user_agent.is_mobile,
+                'is_tablet': user_agent.is_tablet,
+                'browser_family': user_agent.browser.family,
+                'Device': device_name,
+                # ... other user agent attributes ...
+            },
+            ip_address=ip_address,
+            country=country,
+            city=city,
+            latitude=latitude,
+            longitude=longitude,
+            region=region,
+            timestamp=timezone.now()
         )
     else:
         # Log activity with None for the user field to indicate that the user was not logged in
         activity_details = "User logged out (Not logged in)"
         
         # Get the user agent from the request
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        user_agent_string = request.META.get('HTTP_USER_AGENT', '')
+        user_agent = parse(user_agent_string)
 
         UserActivity.objects.create(
             user=None,
@@ -143,13 +242,37 @@ def user_queue(request):
     activity_details = "Visited user queue page"
     
     # Get the user agent from the request
-    user_agent = request.META.get('HTTP_USER_AGENT', '')
-
+    user_agent_string = request.META.get('HTTP_USER_AGENT', '')
+    user_agent = parse(user_agent_string)
+    
+    # Get the user's IP address from the request
+    ip_address = get_client_ip(request)
+    
+    # Make a request to the IPInfo API
+    api_url = f"https://ipinfo.io/{ip_address}?token=YOUR_IPINFO_API_KEY"  # Replace with your actual API key
+    response = requests.get(api_url)
+    data = response.json()
+    
+    # Extract country and city information
+    country = data.get('country')
+    city = data.get('city')
+    
+    device_name = user_agent_string
+    # Create UserActivity instance with user agent, location, and other details
     UserActivity.objects.create(
         user=request.user,
         activity="Visited user queue page",
         details=activity_details,
-        user_agent=user_agent,  
+        user_agent={
+            'is_mobile': user_agent.is_mobile,
+            'is_tablet': user_agent.is_tablet,
+            'browser_family': user_agent.browser.family,
+            'Device': device_name,
+            # ... other user agent attributes ...
+        },
+        ip_address=ip_address,
+        country=country,
+        city=city,
         timestamp=timezone.now()
     )
     
