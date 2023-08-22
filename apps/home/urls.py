@@ -43,6 +43,8 @@ urlpatterns = [
     path('authentication/user/<int:pk>/delete/', authenication_views.delete_user, name='delete_user'),
     
     path('authentication/change_password/', authenication_views.ChangePasswordView.as_view(), name='change_password'),
+    
+    path('api/create_ticket/', ticketing_views.create_ticket_api, name='create_ticket_api'),
    
     
 

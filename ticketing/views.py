@@ -1036,3 +1036,30 @@ def send_email(request):
     return render(request, 'customer_queue.html', {'customer': Customer.objects.all()})
 
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import TicketSerializer
+
+from django.utils import timezone
+
+@api_view(['POST'])
+def create_ticket_api(request):
+    if request.method == 'POST':
+        # Set the created_by field to the user with primary key 1
+        request.data['created_by'] = 2  # Replace 1 with the actual primary key of the user you want
+
+        # Set the current timestamp as the ticket's date_created
+        request.data['date_created'] = timezone.now()
+
+        serializer = TicketSerializer(data=request.data)
+        if serializer.is_valid():
+            ticket = serializer.save()
+
+            # Your existing code to log the ticket creation activity, send email, etc.
+
+            return Response({'message': 'Ticket created successfully'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({'message': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+

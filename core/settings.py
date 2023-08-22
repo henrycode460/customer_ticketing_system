@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'apps.authentication',
      'ckeditor',
    'django_select2',
+   'rest_framework',
    
     
     'ticketing',

@@ -38,7 +38,10 @@ path('technician_complete_ticket_admin/', views.technician_complete_ticket_admin
 path('user_activities/', views.user_activities_view, name='user_activities'),
 path('customer_queue/', views.customer_queue, name='customer_queue'),
 
+
 path('send_email/', views.send_email, name='send_email'),
+
+path('api/create_ticket/', views.create_ticket_api, name='create_ticket_api'),
 
 
 
